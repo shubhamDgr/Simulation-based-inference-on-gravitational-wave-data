@@ -9,6 +9,7 @@ Usage:
     study.run_all()
 """
 
+import bilby
 import h5py
 import numpy as np
 import torch
@@ -20,8 +21,63 @@ from sbi import utils as sbi_utils
 from sbi.inference import NPE, simulate_for_sbi
 from sbi.neural_nets import posterior_nn
 from matplotlib.patches import Patch
-from gw_simulator import FIXED_PARAMETERS, black_hole_masses, generate_signal
 
+# Importing necessary parts from simulator.py
+
+f_min = 20.0
+sampling_frequency = 2048
+duration = 1.0
+start_time = 0.0
+
+FIXED_PARAMETERS = dict(
+    a_1=0.0, a_2=0.0,
+    tilt_1=0.0, tilt_2=0.0,
+    phi_12=0.0, phi_jl=0.0,
+    theta_jn=0.0,
+    psi=0.0,
+    phase=0.0,
+    geocent_time=.95,
+    ra=0.0,
+    dec=0.0,
+)
+
+approximant = "IMRPhenomXP"
+waveform_arguments = dict(
+    reference_frequency=50.0,
+    minimum_frequency=f_min,
+    waveform_approximant=approximant,
+)
+
+waveform_generator = bilby.gw.WaveformGenerator(
+    duration=duration,
+    sampling_frequency=sampling_frequency,
+    frequency_domain_source_model=bilby.gw.source.lal_binary_black_hole,
+    parameter_conversion=bilby.gw.conversion.convert_to_lal_binary_black_hole_parameters,
+    waveform_arguments=waveform_arguments,
+)
+
+ifos = bilby.gw.detector.InterferometerList(["H1"])
+ifos.set_strain_data_from_zero_noise(
+    sampling_frequency=sampling_frequency,
+    duration=duration,
+    start_time=start_time,
+)
+
+def black_hole_masses(chirp_mass, q=1.0):
+    m1 = chirp_mass * (1 + q)**0.2 / q**0.6
+    m2 = m1 * q
+    return m1, m2
+
+def generate_signal(params):
+    ifos.set_strain_data_from_zero_noise(
+        sampling_frequency=sampling_frequency,
+        duration=duration,
+        start_time=start_time,
+    )
+    ifos.inject_signal(waveform_generator=waveform_generator, parameters=params)
+    signal_fd = ifos[0].strain_data.frequency_domain_strain
+    signal_td = bilby.utils.infft(signal_fd, sampling_frequency)
+    return np.real(signal_td)
 
 class LinearMLPEmbedding(nn.Module):
     """Embedding network: linear compression + MLP, used as summary extractor
@@ -56,7 +112,7 @@ class WaveSBI:
     """
 
     # path to the training data file
-    h5_path = "data.h5"
+    h5_path = "C:/Users/myswl/OneDrive - UvA/Uni/S2/P5/5354MLFP6/project/data-200k.h5"
 
     def __init__(self,
                  # n_simulations not used: trainingset size = number of rows in the .h5 file
@@ -341,7 +397,7 @@ class WaveSBI:
         lp = self.log_prior(theta)
         if not np.isfinite(lp):
             return -np.inf
-        ll = self.log_likelihood(theta)
+        ll = self.log_likelihood_psd(theta)
         return lp + ll
 
     # --- NEW: emcee driver -----------------------------------------------
@@ -511,7 +567,7 @@ class WaveSBI:
         self.run_sbi(verbose=verbose)
         self.plot_comparison()
     
-    def run_mcmc(self, verbose=True):
+    def run_all_mcmc(self, verbose=True):
         self.run_mcmc(verbose=verbose)
         self.plot_mcmc_results()
 
@@ -519,9 +575,11 @@ class WaveSBI:
 # begin AI
 # Run the study with GW data from data.h5
 
+#print('test')
+
 study = WaveSBI(seed=42, n_posterior=10000, ncomponents=128, hidden_dims=[256, 256], mlp_out_dim=64)
 #study.run_all()
 # eind AI
 
 # For the MCMC results
-study.run_mcmc()
+study.run_all_mcmc()
