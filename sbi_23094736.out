@@ -1,0 +1,56 @@
+============================================================
+SBI — Neural Posterior Estimation (NPE)
+  Trainingset: 200000 GW datapoints from data-200k.h5
+  Each datapoint: 2048 time samples
+  Summary net: Linear(2048→128) + ReLU + MLP[256, 256]→64
+============================================================
+
+Loaded training tensors:
+  theta_sim : torch.Size([200000, 2])
+  x_sim     : torch.Size([200000, 2048])
+Linear layer weights before training (norm): 6.538561820983887
+
+Training NPE …
+ Training neural network. Epochs trained: 1 Training neural network. Epochs trained: 2 Training neural network. Epochs trained: 3 Training neural network. Epochs trained: 4 Training neural network. Epochs trained: 5 Training neural network. Epochs trained: 6 Training neural network. Epochs trained: 7 Training neural network. Epochs trained: 8 Training neural network. Epochs trained: 9 Training neural network. Epochs trained: 10 Training neural network. Epochs trained: 11 Training neural network. Epochs trained: 12 Training neural network. Epochs trained: 13 Training neural network. Epochs trained: 14 Training neural network. Epochs trained: 15 Training neural network. Epochs trained: 16 Training neural network. Epochs trained: 17 Training neural network. Epochs trained: 18 Training neural network. Epochs trained: 19 Training neural network. Epochs trained: 20 Training neural network. Epochs trained: 21 Training neural network. Epochs trained: 22 Training neural network. Epochs trained: 23 Training neural network. Epochs trained: 24 Training neural network. Epochs trained: 25 Training neural network. Epochs trained: 26 Training neural network. Epochs trained: 27 Training neural network. Epochs trained: 28 Training neural network. Epochs trained: 29 Training neural network. Epochs trained: 30 Training neural network. Epochs trained: 31 Training neural network. Epochs trained: 32 Training neural network. Epochs trained: 33 Training neural network. Epochs trained: 34 Training neural network. Epochs trained: 35 Training neural network. Epochs trained: 36 Training neural network. Epochs trained: 37 Neural network successfully converged after 37 epochs.
+        -------------------------
+        ||||| ROUND 1 STATS |||||:
+        -------------------------
+        Epochs trained: 37
+        Best validation performance: 2.8864
+        -------------------------
+        
+Linear layer weights after training (norm): 21.19590950012207
+Weight change (norm of difference): 20.53073501586914
+
+SBI/NPE: chirp_mass = 56.780,  distance = 510.811
+  (true: 56.786, 507.725)
+
+
+Plotting …
+
+── Summary ─────────────────────────────────────────────
+                 Mc       dL
+True         56.786  507.725
+SBI/NPE      56.780  510.811
+
+evaluating on 500 test points from test.h5 ...
+  50/500
+  100/500
+  150/500
+  200/500
+  250/500
+  300/500
+  350/500
+  400/500
+  450/500
+  500/500
+
+── point-estimate errors ─────────────────────
+chirp mass : bias = -0.000  rms = 0.099 M_sun
+distance   : bias = +1.5  rms = 12.8 Mpc
+
+── coverage (should be ~68% and ~95%) ────────
+chirp mass : 68% CI contains true in 59.2%   |   95% CI in 91.2%
+distance   : 68% CI contains true in 66.6%   |   95% CI in 93.6%
+
+saved evaluation plot to evaluation.png
